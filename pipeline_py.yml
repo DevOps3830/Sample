@@ -1,0 +1,52 @@
+trigger:
+  branches:
+    include:
+    - main
+
+resources:
+  containers:
+  - container: python_container
+    image: your-registry/your-image-name:tag
+    options: --env USERNAME=$(username) --env PASSWORD=$(password)
+    endpoint: yourDockerRegistryServiceConnectionName
+
+variables:
+  - group: cyberark-secrets  # Contains 'username' and 'password'
+
+stages:
+- stage: WaitForApproval
+  displayName: 'Preparation and Approval'
+  jobs:
+  - deployment: WaitForApproval
+    displayName: 'Awaiting Manual Approval'
+    environment: 
+      name: ManualApprovalEnvironment
+      resourceType: VirtualMachine
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: none
+          - script: echo "Manual approval received."
+            displayName: 'Dummy Step for Approval'
+
+- stage: RunCyberArkOperations
+  displayName: 'Execute CyberArk Operations Script'
+  dependsOn: WaitForApproval
+  condition: succeeded()
+  jobs:
+  - job: ExecuteInDockerContainer
+    displayName: 'Execute Task in Docker Container'
+    pool:
+      vmImage: 'ubuntu-latest'
+    container: python_container
+    steps:
+    - checkout: self
+    - script: |
+        python cyberark_operations.py "$(username)" "$(password)" "data.csv"
+      displayName: 'Run CyberArk Operations Script'
+      env:
+        username: $(username)
+        password: $(password)
