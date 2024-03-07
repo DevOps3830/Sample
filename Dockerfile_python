@@ -1,0 +1,12 @@
+FROM python:3.9-slim
+
+# Install any necessary dependencies
+RUN pip install requests
+
+# Set up the working directory
+WORKDIR /app
+
+# Copy the Python script into the image, if it doesn't need to be dynamically updated
+# COPY cyberark_operations.py /app/cyberark_operations.py
+
+CMD ["python3"]
