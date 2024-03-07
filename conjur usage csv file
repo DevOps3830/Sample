@@ -1,0 +1,9 @@
+create_safe,DevSafe
+add_safe_member,DevSafe,devUser
+add_account,DevSafe,{"username": "devAdmin", "platform": "Linux", "address": "192.168.1.10"}
+create_safe,TestSafe
+add_safe_member,TestSafe,testUser
+add_account,TestSafe,{"username": "testAdmin", "platform": "Windows", "address": "192.168.1.20"}
+create_safe,ProdSafe
+add_safe_member,ProdSafe,prodUser
+add_account,ProdSafe,{"username": "prodAdmin", "platform": "AWS", "address": "prod.example.com"}
