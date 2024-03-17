@@ -1,0 +1,59 @@
+operations:
+  - action: "add_safe"
+    details:
+      SafeName: "ProjectSafe"
+      Description: "Safe for Project XYZ"
+      OLACEnabled: false
+      ManagingCPM: "PasswordManager"
+      Location: "\\"
+  - action: "add_safe_member"
+    safe: "ProjectSafe"
+    details:
+      memberName: "ProjectAdmin"
+      searchIn: "Vault"
+      membershipExpirationDate: null
+      permissions:
+        useAccounts: true
+        retrieveAccounts: true
+        listAccounts: true
+        addAccounts: true
+        updateAccountContent: true
+        updateAccountProperties: true
+        initiateCPMAccountManagementOperations: true
+        specifyNextAccountContent: true
+        renameAccounts: true
+        deleteAccounts: true
+        unlockAccounts: true
+        manageSafe: true
+        manageSafeMembers: true
+        backupSafe: true
+        viewAuditLog: true
+        viewSafeMembers: true
+        accessWithoutConfirmation: true
+        createFolders: true
+        deleteFolders: true
+        moveAccountsAndFolders: true
+        requestsAuthorizationLevel1: true
+        requestsAuthorizationLevel2: true
+  - action: "add_account"
+    safe: "ProjectSafe"
+    details:
+      name: "project_db_account"
+      address: "db.project.com"
+      userName: "dbuser"
+      platformId: "WinServerLocal"
+      secretType: "password"
+      secret: "dbpassword123"
+      platformAccountProperties:
+        LogonDomain: "project.com"
+        Port: "1433"
+      secretManagement:
+        automaticManagementEnabled: true
+        manualManagementReason: ""
+      remoteMachinesAccess:
+        remoteMachines: "db.project.com"
+        accessRestrictedToRemoteMachines: true
+  - action: "delete_safe"
+    safe: "ObsoleteSafe"
+  - action: "delete_account"
+    accountID: "5c9cd5f3-8d59-4c15-b582-2c7ae0a6f443"
