@@ -1,0 +1,84 @@
+ --------------------- ACCESS POLICY ---------------------------------
+
+apiVersion: security.policy.gloo.solo.io/v2
+kind: AccessPolicy
+metadata:
+  name: header-check-policy
+  namespace: gloo-mesh
+spec:
+  sourceSelector:
+    - requestHeaders:
+        - name: "X-Required-Header"
+          values:
+            - "bite"
+  destinationSelector:
+    - route:
+        namespace: gloo-mesh
+        name: my-route-table
+        labels:
+          app: my-app
+        paths:
+          - prefix: /restricted-path
+  config:
+    deniedResponse:
+      redirect:
+        scheme: "http"
+        hostname: "your-service-url"
+        port: "80"
+        path: "/unauthorized"
+
+
+ --------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+apiVersion: networking.gloo.solo.io/v2
+kind: TransformationPolicy
+metadata:
+  name: header-check-transformation
+  namespace: gloo-mesh
+spec:
+  applyToRoutes:
+    - routeTableSelector:
+        namespace: gloo-mesh
+        labels:
+          app: my-app
+        matchRoutes:
+          - prefix: /restricted-path
+  requestTransformation:
+    transformationTemplate:
+      headers:
+        set:
+          X-Required-Header: "{{ .request.headers.x-required-header }}"
+
+
+ -------------------------------------------------------------------
+
+
+
+apiVersion: networking.gloo.solo.io/v2
+kind: RouteTable
+metadata:
+  name: my-route-table
+  namespace: gloo-mesh
+  labels:
+    app: my-app
+spec:
+  virtualGatewayRefs:
+    - name: my-virtual-gateway
+      namespace: gloo-mesh
+  routes:
+    - match:
+        prefix: /restricted-path
+      routeAction:
+        single:
+          destinationRef:
+            name: my-service
+            namespace: my-namespace
+    - match:
+        prefix: /
+      routeAction:
+        single:
+          destinationRef:
+            name: my-service
+            namespace: my-namespace
