@@ -1,4 +1,44 @@
- --------------------- ACCESS POLICY ---------------------------------
+
+apiVersion: policies.gloo.solo.io/v2
+kind: TransformationPolicy
+metadata:
+  name: block-path-unless-headers-present
+  namespace: gloo-mesh
+spec:
+  applyToRoutes:
+    - route:
+        labels:
+          app: your-app
+      matchers:
+        - uri:
+            prefix: /blocked-path
+  requestTransformation:
+    transformations:
+      - requestTransformation:
+          transformationTemplate:
+            headers:
+              operations:
+                - set:
+                    headers:
+                      :status: "403"
+                      content-length: "0"
+                    when:
+                      all:
+                        - not:
+                            headerValue:
+                              headerName: bite
+                              exactMatch: "value1"
+                        - not:
+                            headerValue:
+                              headerName: bite
+                              exactMatch: "value2"
+                        - not:
+                            headerValue:
+                              headerName: another-header
+                              exactMatch: "value3"
+ 
+ 
+ ACCESS POLICY ---------------------------------
 
 apiVersion: security.policy.gloo.solo.io/v2
 kind: AccessPolicy
