@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-resource-analyzer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-resource-analyzer
+  template:
+    metadata:
+      labels:
+        app: kube-resource-analyzer
+    spec:
+      containers:
+        - name: kube-resource-analyzer
+          image: kube-resource-analyzer
+          ports:
+            - containerPort: 5000
+          volumeMounts:
+            - name: kubeconfig-volume
+              mountPath: /app/kubeconfigs
+      volumes:
+        - name: kubeconfig-volume
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-resource-analyzer-service
+spec:
+  type: NodePort
+  ports:
+    - port: 5000
+      targetPort: 5000
+      nodePort: 30001
+  selector:
+    app: kube-resource-analyzer
