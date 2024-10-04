@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Kube Resource Analyzer</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        padding: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      form {
+        margin-bottom: 20px;
+      }
+      label {
+        font-weight: bold;
+      }
+      select, input[type="file"], input[type="submit"] {
+        margin: 5px 0;
+        padding: 8px;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Kube Resource Analyzer</h1>
+    <h3>Upload Kubeconfig</h3>
+    <form action="/" method="post" enctype="multipart/form-data">
+      <input type="file" name="kubeconfig" required>
+      <input type="submit" value="Upload">
+    </form>
+
+    {% if message %}
+      <p>{{ message }}</p>
+
+      <!-- Form to select resource level and workload type -->
+      <form action="/table" method="get">
+        <label for="level">Select Resource Level:</label><br>
+        <select name="level" id="level">
+          <option value="namespace">Namespace Level</option>
+          <option value="pod">Pod Level</option>
+        </select>
+        <br><br>
+
+        <label for="workload_type">Select Workload Type:</label><br>
+        <select name="workload_type" id="workload_type">
+          <option value="all">All</option>
+          <option value="deployment">Deployment</option>
+          <option value="statefulset">StatefulSet</option>
+          <option value="replicaset">ReplicaSet</option>
+        </select>
+        <br><br>
+
+        <input type="submit" value="View Resource Table">
+      </form>
+    {% endif %}
+  </body>
+</html>
