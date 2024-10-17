@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# Function to print colored text
+function print_color {
+    local color=$1
+    local message=$2
+    case $color in
+        "red") echo -e "\033[31m$message\033[0m" ;;
+        "green") echo -e "\033[32m$message\033[0m" ;;
+        "yellow") echo -e "\033[33m$message\033[0m" ;;
+        "blue") echo -e "\033[34m$message\033[0m" ;;
+        *) echo "$message" ;;
+    esac
+}
+
+# Function to display the menu with arrow key navigation
+function display_menu {
+    local options=("$@")
+    local highlight=0
+    local key
+
+    while true; do
+        clear
+        print_color "yellow" "Select a module using the arrow keys (press Enter to select):"
+        
+        for i in "${!options[@]}"; do
+            if [ $i -eq $highlight ]; then
+                print_color "green" ">> ${options[$i]}"
+            else
+                print_color "blue" "   ${options[$i]}"
+            fi
+        done
+
+        # Get key input
+        read -rsn1 key
+        case $key in
+            $'\x1b') # Handle arrow keys
+                read -rsn2 -t 0.1 key
+                case $key in
+                    '[A') # Up arrow
+                        ((highlight--))
+                        if [ $highlight -lt 0 ]; then
+                            highlight=$((${#options[@]} - 1))
+                        fi
+                        ;;
+                    '[B') # Down arrow
+                        ((highlight++))
+                        if [ $highlight -ge ${#options[@]}; then
+                            highlight=0
+                        fi
+                        ;;
+                esac
+                ;;
+            '') # Enter key
+                return $highlight
+                ;;
+        esac
+    done
+}
+
+# Function to gather input parameters, some with multiple values
+function input_params {
+    local param_name=$1
+    local is_list=$2
+    local values=()
+
+    if [ "$is_list" == "true" ]; then
+        while true; do
+            read -p "Enter a value for $param_name (or type 'done' to finish): " value
+            if [ "$value" == "done" ]; then
+                break
+            fi
+            values+=("$value")
+        done
+        echo "${param_name}: ${values[*]}"
+    else
+        read -p "Enter a value for $param_name: " value
+        echo "${param_name}: $value"
+    fi
+}
+
+# Function to preview and edit Kubernetes YAML before applying
+function apply_k8s_config {
+    local config_file=$1
+
+    # Preview YAML
+    print_color "yellow" "Previewing YAML for $config_file:"
+    kubectl apply -f "$config_file" -o yaml
+
+    # Ask user for confirmation or editing
+    while true; do
+        read -p "Do you want to apply this configuration? (y/n/edit): " user_input
+        case $user_input in
+            [Yy]* )
+                kubectl apply -f "$config_file"
+                print_color "green" "Applied configuration."
+                break
+                ;;
+            [Nn]* )
+                print_color "red" "Cancelled applying configuration."
+                break
+                ;;
+            "edit" )
+                print_color "yellow" "Opening the configuration for editing..."
+                nano "$config_file"
+                ;;
+            * )
+                print_color "red" "Invalid option. Please type y, n, or edit."
+                ;;
+        esac
+    done
+}
+
+# Main script execution
+
+# Customize your modules (example of 4 modules, can be dynamic)
+module1="Cluster Management"
+module2="Data Processing"
+module3="Backup & Restore"
+module4="Monitoring"
+
+modules=("$module1" "$module2" "$module3" "$module4")
+
+# Display the menu for module selection
+display_menu "${modules[@]}"
+selected_module=$?
+
+clear
+echo "You selected: ${modules[$selected_module]}"
+
+# After selecting a module, ask for specific params based on the module
+case $selected_module in
+    0)
+        print_color "green" "Configuring Cluster Management"
+        main_cluster=$(input_params "Main Cluster" false)
+        data_clusters=$(input_params "Data Clusters" true)
+        ;;
+    1)
+        print_color "green" "Configuring Data Processing"
+        process_name=$(input_params "Process Name" false)
+        data_sources=$(input_params "Data Sources" true)
+        ;;
+    2)
+        print_color "green" "Configuring Backup & Restore"
+        backup_name=$(input_params "Backup Name" false)
+        volumes=$(input_params "Volumes" true)
+        ;;
+    3)
+        print_color "green" "Configuring Monitoring"
+        monitor_name=$(input_params "Monitor Name" false)
+        services=$(input_params "Services" true)
+        ;;
+esac
+
+# Example of applying Kubernetes configuration
+config_file="path_to_your_config.yaml"  # Change this to an actual file path
+apply_k8s_config "$config_file"
